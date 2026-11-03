@@ -15,6 +15,29 @@ BRIDGE_FILE = os.path.join(BASE_DIR, "bridge_data.json")
 PROFILES_DIR = os.path.join(BASE_DIR, "profiles")
 os.makedirs(PROFILES_DIR, exist_ok=True)
 
+CUSTOM_CSS = """
+<style>
+.stApp { background-color: #050505; color: #E4E4E4; }
+.lazers-banner {
+    background: linear-gradient(90deg, #0A0A0A 0%, #161616 100%);
+    border-left: 4px solid #00FFAA;
+    padding: 16px 22px;
+    border-radius: 6px;
+    margin-bottom: 18px;
+}
+.lazers-title { font-size: 24px; font-weight: 800; letter-spacing: 1.8px; color: #FFFFFF; margin: 0; }
+.lazers-sub { font-size: 12px; color: #00FFAA; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; }
+.box-red { background-color: #260707; border: 1px solid #FF3B3B; padding: 14px; border-radius: 6px; color: #FFB3B3; margin-bottom: 12px; }
+.box-amber { background-color: #241905; border: 1px solid #FFB020; padding: 14px; border-radius: 6px; color: #FFE2A8; margin-bottom: 12px; }
+.box-green { background-color: #062115; border: 1px solid #00FFAA; padding: 14px; border-radius: 6px; color: #A8FFE0; margin-bottom: 12px; }
+div[data-testid="stMetric"] { background-color: #0E0E0E; border: 1px solid #242424; padding: 12px; border-radius: 6px; }
+</style>
+<div class="lazers-banner">
+    <p class="lazers-title">BEMASK // L.A.Z.E.R.S.</p>
+    <p class="lazers-sub">Live Analytics & Zone Econometrics Retention System — F&B, Economato, Scudo 96h & Ponte Sovereign</p>
+</div>
+"""
+
 WEATHER_PRESETS = {
     "S0 — LOCK-IN / FORZA MAGGIORE (Grounding & Assedio 96h)": {
         "ret_bb": 1.00, "ret_ro": 1.00, "ext_mult": 0.00, "terrazza_on": False, "lock_in": True,
@@ -49,7 +72,6 @@ WEATHER_PRESETS = {
 }
 
 def classify_day_scenario(am_rain, pm_rain, am_code, pm_code, max_wind):
-    """Classificatore automatico scenario meteo giornaliero compatibile col profilo originale."""
     if max_wind >= 48 or pm_rain >= 25.0:
         return "S0 — LOCK-IN / FORZA MAGGIORE (Grounding & Assedio 96h)"
     am_bad = (am_rain >= 3.0) or (am_code in [61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99])
@@ -67,7 +89,6 @@ def classify_day_scenario(am_rain, pm_rain, am_code, pm_code, max_wind):
     return "S4 — Sereno Standard (Operatività Ottimale)"
 
 def fetch_live_weather(lat=42.92, lon=10.75):
-    """Interroga Open-Meteo gratuitamente (default Follonica / Costa Toscana)."""
     try:
         url = (
             f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
@@ -98,61 +119,23 @@ def save_bridge_data(payload):
     except Exception:
         return False
 
-def load_bridge_data():
-    if os.path.exists(BRIDGE_FILE):
-        try:
-            with open(BRIDGE_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-# ==============================================================================
-# MOTORE PRINCIPALE DI RENDERING (Richiamabile anche da dashboard.py)
-# ==============================================================================
-
 def render_fnb_module():
-    st.markdown("""
-        <style>
-        .stApp { background-color: #050505; color: #E4E4E4; }
-        .lazers-banner {
-            background: linear-gradient(90deg, #0A0A0A 0%, #161616 100%);
-            border-left: 4px solid #00FFAA;
-            padding: 16px 22px;
-            border-radius: 6px;
-            margin-bottom: 18px;
-        }
-        .lazers-title { font-size: 24px; font-weight: 800; letter-spacing: 1.8px; color: #FFFFFF; margin: 0; }
-        .lazers-sub { font-size: 12px; color: #00FFAA; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; }
-        .box-red { background-color: #260707; border: 1px solid #FF3B3B; padding: 14px; border-radius: 6px; color: #FFB3B3; margin-bottom: 12px; }
-        .box-amber { background-color: #241905; border: 1px solid #FFB020; padding: 14px; border-radius: 6px; color: #FFE2A8; margin-bottom: 12px; }
-        .box-green { background-color: #062115; border: 1px solid #00FFAA; padding: 14px; border-radius: 6px; color: #A8FFE0; margin-bottom: 12px; }
-        div[data-testid="stMetric"] { background-color: #0E0E0E; border: 1px solid #242424; padding: 12px; border-radius: 6px; }
-        </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-        <div class="lazers-banner">
-            <p class="lazers-title">BEMASK // L.A.Z.E.R.S.</p>
-            <p class="lazers-sub">Live Analytics & Zone Econometrics Retention System — F&B, Economato, Scudo 96h & Ponte Sovereign</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
     if "active_scenario" not in st.session_state:
         st.session_state["active_scenario"] = "S4 — Sereno Standard (Operatività Ottimale)"
 
-    # --- BARRA SUPERIORE: RADAR METEO & SCENARIO ---
     col_w1, col_w2, col_w3 = st.columns([1.2, 1.2, 2.6])
     with col_w1:
         lat_in = st.number_input("Latitudine Struttura", value=42.920, format="%.3f")
         lon_in = st.number_input("Longitudine Struttura", value=10.750, format="%.3f")
     with col_w2:
         st.write("")
-        if st.button("📡 SINCRONIZZA RADAR METEO LIVE", use_container_width=True):
+        if st.button("📡 SINCRONIZZA RADAR METEO LIVE", width="stretch"):
             res_w = fetch_live_weather(lat_in, lon_in)
             if res_w["ok"]:
                 st.session_state["active_scenario"] = res_w["scenario"]
-                st.toast(f"Meteo Live sincronizzato: Vento max {res_w['max_wind']} km/h | Pioggia PM {res_w['pm_rain']} mm")
+                st.toast(f"Meteo Live: Vento max {res_w['max_wind']} km/h | Pioggia PM {res_w['pm_rain']} mm")
             else:
                 st.warning("Radar offline, mantenuto controllo manuale.")
         soglia_nodi_vento = st.number_input("Soglia Grounding Vento (km/h)", value=45, step=5)
@@ -166,7 +149,6 @@ def render_fnb_module():
 
     st.markdown("---")
 
-    # --- INPUT RAPIDI DI GIORNATA: PRESENZE, ZONE E COSTI BASE ---
     p_col1, p_col2, p_col3, p_col4 = st.columns(4)
     with p_col1:
         st.markdown("##### 👥 1. Presenze In-House")
@@ -195,11 +177,10 @@ def render_fnb_module():
     with p_col4:
         st.markdown("##### 🏛️ 4. Split Multi-P.IVA & Portali")
         iva_media_fnb = st.selectbox("Aliquota IVA Prevalente F&B (%)", [10, 22], index=0)
-        fee_gestore_fnb = st.slider("Quota Spettante a P.IVA Ristorazione (%)", 10, 100, 100, help="100% se gestione diretta; <100% se in affitto/revenue share")
+        fee_gestore_fnb = st.slider("Quota Spettante a P.IVA Ristorazione (%)", 10, 100, 100)
         comm_thefork = st.number_input("Costo Commissione TheFork (€/coperto)", min_value=0.0, value=2.50, step=0.10)
         quota_thefork_pct = st.slider("% Esterni provenienti da TheFork", 0, 100, 35)
 
-    # --- CALCOLO RETENTION, ZONE E FLUSSI ---
     catturati_bb = round(pax_bb * sc_data["ret_bb"])
     catturati_ro = round(pax_ro * sc_data["ret_ro"])
     catturati_extra_hotel = catturati_bb + catturati_ro
@@ -215,7 +196,6 @@ def render_fnb_module():
     coperti_totali = coperti_totali_hotel + esterni_accettati
     bocche_totali_assedio = pax_fb + pax_hb + pax_bb + pax_ro + staff_in_house
 
-    # --- CALCOLO ECONOMICO DI GIORNATA ---
     ricavo_lordo_hb_fb = (pax_hb * quota_pasto_hb) + (pax_fb * quota_pasto_fb)
     ricavo_lordo_extra_catturati = catturati_extra_hotel * scontrino_alacarte
     ricavo_lordo_esterni = esterni_accettati * scontrino_alacarte
@@ -225,13 +205,12 @@ def render_fnb_module():
     coperti_da_thefork = round(esterni_accettati * (quota_thefork_pct / 100.0)) if slot_liberi_per_esterni > 12 else 0
     costo_comm_portali = coperti_da_thefork * comm_thefork
     costo_materie_prime = fatturato_netto_iva * (food_cost_pct / 100.0)
-    costo_pasti_staff = staff_in_house * 4.50  # Costo vivo medio pasto staff residente
+    costo_pasti_staff = staff_in_house * 4.50
 
     margine_operativo_netto = fatturato_netto_iva - costo_materie_prime - cf_brigata - costo_comm_portali - costo_pasti_staff
     quota_societa_fnb = margine_operativo_netto * (fee_gestore_fnb / 100.0)
     quota_casa_madre = margine_operativo_netto - quota_societa_fnb
 
-    # --- STRISCIA KPI REAL-TIME ---
     k1, k2, k3, k4, k5, k6 = st.columns(6)
     k1.metric("Sedute Attive Oggi", f"{sedute_disponibili_oggi} posti", "Terrazza ON" if sc_data["terrazza_on"] else "Solo Interno")
     k2.metric("Ospiti BB/RO Catturati", f"+{catturati_extra_hotel} pax", f"su {pax_bb + pax_ro} liberi")
@@ -240,35 +219,13 @@ def render_fnb_module():
     k5.metric("MOL F&B Pulito Oggi", f"€ {margine_operativo_netto:,.0f}", f"Staff: -€ {costo_pasti_staff:,.0f}")
     k6.metric("Bocche Totali (96h)", f"{bocche_totali_assedio} bocche", f"Include {staff_in_house} Staff")
 
-    # --- SEMAFORO INTELLIGENTE PORTALI ESTERNI (TheFork / Google / Diretto) ---
     if sc_data["lock_in"]:
-        st.markdown(f"""
-            <div class="box-red">
-                <b>🔴 PROTOCOLLO ISOLAMENTO / FORZA MAGGIORE ATTIVO:</b> Chiudere istantaneamente <b>TheFork, OpenTable e Google Reserve</b> agli esterni. 
-                Priorità assoluta alle <b>{bocche_totali_assedio} bocche presenti nell'edificio</b> ({pax_fb+pax_hb+pax_bb+pax_ro} Ospiti + {staff_in_house} Staff Residente). 
-                Attivato monitoraggio Dispensa 96 Ore e Piano Fallback VIP per servizi esterni bloccati.
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="box-red"><b>🔴 PROTOCOLLO ISOLAMENTO / FORZA MAGGIORE ATTIVO:</b> Chiudere istantaneamente <b>TheFork, OpenTable e Google Reserve</b> agli esterni. Priorità assoluta alle <b>{bocche_totali_assedio} bocche presenti nell\'edificio</b> ({pax_fb+pax_hb+pax_bb+pax_ro} Ospiti + {staff_in_house} Staff Residente).</div>', unsafe_allow_html=True)
     elif slot_liberi_per_esterni <= 12:
-        st.markdown(f"""
-            <div class="box-amber">
-                <b>🟠 SATURAZIONE INTERNA ELEVATA ({coperti_totali_hotel}/{tetto_reale_servizio} coperti già in casa):</b> 
-                <b>CHIUDERE SUBITO THEFORK</b> (risparmio immediato € {comm_thefork:.2f}/coperto). 
-                Lasciare aperti solo <b>{slot_liberi_per_esterni} posti</b> su <b>Google Reserve / Canale Diretto</b> con pre-autorizzazione carta obbligatoria sopra i {soglia_carta_garanzia} ospiti.
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="box-amber"><b>🟠 SATURAZIONE INTERNA ELEVATA ({coperti_totali_hotel}/{tetto_reale_servizio} coperti già in casa):</b> <b>CHIUDERE SUBITO THEFORK</b> (risparmio € {comm_thefork:.2f}/coperto). Lasciare aperti solo <b>{slot_liberi_per_esterni} posti</b> su <b>Google Reserve / Canale Diretto</b> con carta a garanzia sopra i {soglia_carta_garanzia} ospiti.</div>', unsafe_allow_html=True)
     else:
-        st.markdown(f"""
-            <div class="box-green">
-                <b>🟢 CAPACITÀ ESTERNA DISPONIBILE ({slot_liberi_per_esterni} sedute libere):</b> 
-                Mantenere aperti <b>Google Reserve, Sito Diretto e TheFork</b>. 
-                Richiedere garanzia carta anti no-show per tavoli da {soglia_carta_garanzia}+ pax. Attivabile spinta promo locale sul margine netto.
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="box-green"><b>🟢 CAPACITÀ ESTERNA DISPONIBILE ({slot_liberi_per_esterni} sedute libere):</b> Mantenere aperti <b>Google Reserve, Sito Diretto e TheFork</b>. Garanzia carta anti no-show per tavoli da {soglia_carta_garanzia}+ pax.</div>', unsafe_allow_html=True)
 
-    # ==============================================================================
-    # 5 TABS MONUMENTALI DEL SISTEMA L.A.Z.E.R.S.
-    # ==============================================================================
     t1, t2, t3, t4, t5 = st.tabs([
         "🔬 1. ECONOMATO & SFRIDI VIVI",
         "🛡️ 2. SCUDO 96 ORE & FALLBACK VIP",
@@ -277,7 +234,6 @@ def render_fnb_module():
         "🌉 5. PONTE SOVEREIGN ZERO"
     ])
 
-    # --- TAB 1: ECONOMATO, RESE E VETRERIA ---
     with t1:
         st.subheader("Calcolatore Chirurgico Sfridi, Sgocciolato, Selvaggina, Pouring & Usura Calici")
         ec1, ec2, ec3 = st.columns(3)
@@ -287,7 +243,7 @@ def render_fnb_module():
             iva_ref = st.selectbox("IVA Referenza (%)", [10, 22], index=0)
         with ec2:
             costo_acq_kg_lt = st.number_input("Costo Acquisto Fattura Netto (€/Kg o €/Bottiglia)", value=24.0, step=0.5)
-            grammatura_porzione = st.number_input("Dose Servita nel Piatto/Calice (Kg o frazione bottiglia)", value=0.200, step=0.020, format="%.3f")
+            grammatura_porzione = st.number_input("Dose Servita nel Piatto/Calice (Kg o frazione)", value=0.200, step=0.020, format="%.3f")
             resa_effettiva_pct = st.slider("Resa Reale Post-Sfrido / Sgocciolato / Ossa (%)", 35, 100, 72)
         with ec3:
             quota_rottura_vetri = st.number_input("Quota Usura/Rottura Cristalleria + Tovagliato (€)", value=0.45, step=0.05)
@@ -301,17 +257,15 @@ def render_fnb_module():
         incidenza_reale_pct = (costo_vivo_totale_piatto / prezzo_ref_netto * 100.0) if prezzo_ref_netto > 0 else 0.0
 
         m_a, m_b, m_c, m_d = st.columns(4)
-        m_a.metric("Ricavo Netto Referenza", f"€ {prezzo_ref_netto:.2f}", f"Senza lo {100-resa_effettiva_pct}% di scarto: € {costo_mp_teorico:.2f}")
+        m_a.metric("Ricavo Netto Referenza", f"€ {prezzo_ref_netto:.2f}", f"Teorico senza scarto: € {costo_mp_teorico:.2f}")
         m_b.metric("Costo Vivo Reale (con Sfrido+Vetri)", f"€ {costo_vivo_totale_piatto:.2f}", f"+€ {costo_mp_reale_sfrido - costo_mp_teorico:.2f} di sfrido occulto")
         m_c.metric("Margine Netto Unitario", f"€ {margine_netto_piatto:.2f}")
         m_d.metric("Food Cost Reale Referenza", f"{incidenza_reale_pct:.1f}%", "In Target" if incidenza_reale_pct <= 30 else "Rivedere Prezzo/Porzione")
 
-    # --- TAB 2: SCUDO 96 ORE & PIANO B VIP (YOGA / SERVIZI ESTERNI) ---
     with t2:
         st.subheader(f"Autonomia Dispensa 96 Ore ({bocche_totali_assedio} Bocche: Ospiti + Staff) & Piano Continuità VIP")
         col_s1, col_s2 = st.columns([1.3, 1])
         with col_s1:
-            st.markdown("##### 📦 Semaforo Scorte Critiche per Isolamento (4 Giorni)")
             fabbisogno_96h = bocche_totali_assedio * 4
             df_assedio = pd.DataFrame([
                 {"Dispensa Critica": "Farina, Lievito Secco & Basi Panificazione", "Porzioni in Casa": 520, "Target 96h": fabbisogno_96h},
@@ -324,24 +278,22 @@ def render_fnb_module():
             df_assedio["Stato Scudo"] = df_assedio["Autonomia (Giorni)"].apply(
                 lambda d: "🟢 AUTONOMO (>4gg)" if d >= 4.0 else "🔴 REINTEGRO IMMEDIATO (<4gg)"
             )
-            st.dataframe(df_assedio, use_container_width=True, hide_index=True)
+            st.dataframe(df_assedio, width="stretch", hide_index=True)
 
         with col_s2:
-            st.markdown("##### 🧘 Registro Operatori Pendolari vs Residenti (Anti-Crisi VIP)")
             df_staff_vip = pd.DataFrame([
                 {"Servizio VIP": "Lezione Yoga / Pilates", "Operatore": "Esterno (Pendolare da Valle)", "Fallback in Caso Blocco": "Diretta Live 4K in Suite + Tisana Detox & Operatrice Spa In-House"},
                 {"Servizio VIP": "Degustazione Sommelier", "Operatore": "Residente (Staff House)", "Fallback in Caso Blocco": "Garantito al 100% in Cantina Storica"},
                 {"Servizio VIP": "Escursione Yacht / Elicottero", "Operatore": "Soggetto a Grounding Meteo", "Fallback in Caso Blocco": "Conversione immediata in Voucher Private Spa + Champagne Cuvée"},
             ])
-            st.dataframe(df_staff_vip, use_container_width=True, hide_index=True)
+            st.dataframe(df_staff_vip, width="stretch", hide_index=True)
 
-    # --- TAB 3: MOTORE PROMOZIONALE & ROAS NETTO ---
     with t3:
         st.subheader("Calcolatore Spinta Pubblicitaria (Google Ads / Meta / QR Interno) su Margine Vivo")
         pr1, pr2, pr3 = st.columns(3)
         sedute_target_promo = pr1.number_input("Sedute Vuote da Colmare con Promo", min_value=1, value=max(8, slot_liberi_per_esterni), step=2)
         scontrino_promo = pr2.number_input("Scontrino Lordo Previsto Promo (€)", min_value=20.0, value=scontrino_alacarte, step=5.0)
-        costo_vivo_omaggio = pr3.number_input("Costo Vivo Benefit Omaggio (es. Calice Benvenuto €3,10)", min_value=0.0, value=3.10, step=0.50)
+        costo_vivo_omaggio = pr3.number_input("Costo Vivo Benefit Omaggio (es. Calice €3,10)", min_value=0.0, value=3.10, step=0.50)
 
         incasso_netto_promo = (scontrino_promo / (1.0 + iva_media_fnb / 100.0)) * sedute_target_promo
         costo_mp_promo = incasso_netto_promo * (food_cost_pct / 100.0)
@@ -354,7 +306,6 @@ def render_fnb_module():
         pm2.metric("Utile Vivo Pulito (dopo MP e Calice Omaggio)", f"€ {utile_netto_promo:,.0f}")
         pm3.metric("Budget Max Ads Giornaliero (15% del Netto)", f"€ {budget_ads_consigliato:,.0f}", "Zero erosione margine")
 
-    # --- TAB 4: RIPARTIZIONE SOCIETARIA MULTI-P.IVA ---
     with t4:
         st.subheader("Rendicontazione Separata Casa Madre vs P.IVA Ristorazione / Lido")
         sp1, sp2, sp3 = st.columns(3)
@@ -362,14 +313,13 @@ def render_fnb_module():
         sp2.metric(f"Quota P.IVA Ristorazione ({fee_gestore_fnb}%)", f"€ {quota_societa_fnb:,.2f}")
         sp3.metric(f"Royalty / Quota Casa Madre ({100 - fee_gestore_fnb}%)", f"€ {quota_casa_madre:,.2f}")
 
-    # --- TAB 5: PONTE DIRETTO VERSO SOVEREIGN ZERO (bridge_data.json) ---
     with t5:
         st.markdown("#### 🔗 4. PONTE VERSO SOVEREIGN ZERO (`bridge_data.json`)")
         floor_min_hb = round((cf_brigata / max(coperti_totali, 15)) + (quota_pasto_hb * (food_cost_pct / 100.0)), 2)
         st.write(f"Scenario attivo inviato al banco: **{st.session_state['active_scenario']}**")
         st.write(f"Costo vivo industriale stimato per pasto (Floor HB): **{floor_min_hb:.2f} €**")
 
-        if st.button("💾 CONSOLIDA SCENARIO E FLOOR PER SOVEREIGN ZERO", use_container_width=True):
+        if st.button("💾 CONSOLIDA SCENARIO E FLOOR PER SOVEREIGN ZERO", width="stretch"):
             ok = save_bridge_data({
                 "updated_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
                 "system": "BEMASK // L.A.Z.E.R.S.",
