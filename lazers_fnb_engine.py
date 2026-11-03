@@ -6,110 +6,88 @@ import streamlit as st
 import pandas as pd
 
 # ==============================================================================
-# BEMASK // L.A.Z.E.R.S. MONUMENTAL CORE (Modulo 2.1 + 2.2)
-# Live Analytics & Zone Econometrics Retention System
+# SOVEREIGN KINETIC ARCHITECTURE // L.A.Z.E.R.S. PRO
+# Live Analytics & Zone Econometrics Retention System — Executive Manager OS
 # ==============================================================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BRIDGE_FILE = os.path.join(BASE_DIR, "bridge_data.json")
-PROFILES_DIR = os.path.join(BASE_DIR, "profiles")
-os.makedirs(PROFILES_DIR, exist_ok=True)
 
-CUSTOM_CSS = """
+KINETIC_CSS = """
 <style>
-.stApp { background-color: #050505; color: #E4E4E4; }
-.lazers-banner {
-    background: linear-gradient(90deg, #0A0A0A 0%, #161616 100%);
-    border-left: 4px solid #00FFAA;
-    padding: 16px 22px;
-    border-radius: 6px;
-    margin-bottom: 18px;
+.stApp { background-color: #07090B; color: #E2E8F0; font-family: 'Inter', sans-serif; }
+header[data-testid="stHeader"] { background: transparent; }
+.block-container { padding-top: 1.5rem; max-width: 96%; }
+
+/* TOP HEADER STILE BOSCHETTO PRO */
+.ska-topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #1E293B; padding-bottom: 10px; margin-bottom: 14px;
 }
-.lazers-title { font-size: 24px; font-weight: 800; letter-spacing: 1.8px; color: #FFFFFF; margin: 0; }
-.lazers-sub { font-size: 12px; color: #00FFAA; text-transform: uppercase; letter-spacing: 1.2px; margin-top: 4px; }
-.box-red { background-color: #260707; border: 1px solid #FF3B3B; padding: 14px; border-radius: 6px; color: #FFB3B3; margin-bottom: 12px; }
-.box-amber { background-color: #241905; border: 1px solid #FFB020; padding: 14px; border-radius: 6px; color: #FFE2A8; margin-bottom: 12px; }
-.box-green { background-color: #062115; border: 1px solid #00FFAA; padding: 14px; border-radius: 6px; color: #A8FFE0; margin-bottom: 12px; }
-div[data-testid="stMetric"] { background-color: #0E0E0E; border: 1px solid #242424; padding: 12px; border-radius: 6px; }
+.ska-brand { font-size: 20px; font-weight: 800; letter-spacing: 2.5px; color: #F8FAFC; }
+.ska-brand span { color: #10B981; }
+.ska-clock {
+    background-color: #0F172A; border: 1px solid #10B981; color: #10B981;
+    padding: 5px 14px; border-radius: 4px; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+}
+
+/* PIASTRELLE KINETIC 3x3 CON GLOW AL PASSAGGIO DEL MOUSE */
+.kinetic-tile {
+    background: linear-gradient(145deg, #0F151C 0%, #131B24 100%);
+    height: 155px; border-radius: 4px; padding: 18px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer; position: relative; overflow: hidden;
+    border: 1px solid #1E293B; margin-bottom: 12px;
+}
+.kinetic-tile:hover {
+    transform: translateY(-4px) scale(1.01);
+    background: linear-gradient(145deg, #151F2A 0%, #1B2836 100%);
+}
+.tile-gold { border-left: 4px solid #F59E0B; border-top: 2px solid #F59E0B; }
+.tile-gold:hover { box-shadow: 0 0 22px rgba(245, 158, 11, 0.45); border-color: #FBBF24; }
+
+.tile-green { border-left: 4px solid #10B981; border-top: 2px solid #10B981; }
+.tile-green:hover { box-shadow: 0 0 22px rgba(16, 185, 129, 0.45); border-color: #34D399; }
+
+.tile-cyan { border-left: 4px solid #06B6D4; border-top: 2px solid #06B6D4; }
+.tile-cyan:hover { box-shadow: 0 0 22px rgba(6, 182, 212, 0.45); border-color: #22D3EE; }
+
+.tile-purple { border-left: 4px solid #A855F7; border-top: 2px solid #A855F7; }
+.tile-purple:hover { box-shadow: 0 0 22px rgba(168, 85, 247, 0.45); border-color: #C084FC; }
+
+.tile-title { font-size: 16px; font-weight: 800; letter-spacing: 1.5px; color: #FFFFFF; text-transform: uppercase; text-align: center; margin-top: 6px; }
+.tile-metric { font-size: 20px; font-weight: 800; color: #E2E8F0; text-align: center; }
+.tile-sub { font-size: 11px; color: #94A3B8; text-align: center; letter-spacing: 0.8px; text-transform: uppercase; }
+
+/* QUADRO SINOTTICO LATERALE DESTRO */
+.synoptic-panel {
+    background-color: #0B1016; border: 1px solid #1E293B; border-top: 3px solid #10B981;
+    padding: 16px; border-radius: 4px;
+}
+.synoptic-header { font-size: 11px; font-weight: 800; color: #10B981; letter-spacing: 1.5px; margin-bottom: 12px; text-transform: uppercase; }
+.syn-card {
+    background-color: #111822; border: 1px solid #1E293B; border-left: 3px solid #10B981;
+    padding: 12px 14px; border-radius: 3px; margin-bottom: 10px;
+    transition: all 0.2s ease;
+}
+.syn-card:hover { border-color: #F59E0B; box-shadow: 0 0 14px rgba(245, 158, 11, 0.25); }
+.syn-label { font-size: 10px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; }
+.syn-val { font-size: 22px; font-weight: 800; color: #FFFFFF; margin: 2px 0; }
+.syn-note { font-size: 11px; color: #10B981; }
+
+.legend-box { font-size: 10px; color: #CBD5E1; line-height: 1.8; margin-top: 12px; padding-top: 10px; border-top: 1px solid #1E293B; letter-spacing: 0.8px; }
 </style>
-<div class="lazers-banner">
-    <p class="lazers-title">BEMASK // L.A.Z.E.R.S.</p>
-    <p class="lazers-sub">Live Analytics & Zone Econometrics Retention System — F&B, Economato, Scudo 96h & Ponte Sovereign</p>
-</div>
 """
 
 WEATHER_PRESETS = {
-    "S0 — LOCK-IN / FORZA MAGGIORE (Grounding & Assedio 96h)": {
-        "ret_bb": 1.00, "ret_ro": 1.00, "ext_mult": 0.00, "terrazza_on": False, "lock_in": True,
-        "badge": "🔴 LOCK-IN TOTALE (GROUNDING)",
-        "action": "CHIUDERE TheFork e portali esterni. Attivare Menu Assedio 96h (Ospiti + Staff In-House) e dirottare budget escursioni saltate su Cantina/Spa."
-    },
-    "S1 — Temporale / Pioggia Forte / Tormenta": {
-        "ret_bb": 0.88, "ret_ro": 0.80, "ext_mult": 0.15, "terrazza_on": False, "lock_in": False,
-        "badge": "🌧️ ALLERTA PIOGGIA / RIENTRO MASSICCIO",
-        "action": "Terrazza/Dehors CHIUSI. Alta ritenzione interna RO/BB: bloccare sconti portali esterni e proteggere la linea cucina."
-    },
-    "S2 — Grecale / Maestrale Forte / Freddo Improvviso": {
-        "ret_bb": 0.68, "ret_ro": 0.58, "ext_mult": 0.40, "terrazza_on": False, "lock_in": False,
-        "badge": "💨 VENTO TESO / ESCURSIONE TERMICA",
-        "action": "Servizio concentrato in Sala Climatizzata. Spingere Calici Importanti, Degustazioni Calde e Carta Vini strutturati."
-    },
-    "S3 — Variabile / Nuvoloso Mite": {
-        "ret_bb": 0.48, "ret_ro": 0.38, "ext_mult": 0.75, "terrazza_on": True, "lock_in": False,
-        "badge": "⛅ VARIABILE / EQUILIBRIO FLUSSI",
-        "action": "Apertura parziale sedute esterne con pre-allerta rientro rapido. Mantenere attivo Google Reserve."
-    },
-    "S4 — Sereno Standard (Operatività Ottimale)": {
-        "ret_bb": 0.32, "ret_ro": 0.25, "ext_mult": 1.00, "terrazza_on": True, "lock_in": False,
-        "badge": "☀️ SERENO / PIENA CAPACITÀ",
-        "action": "Sala Interna + Terrazza attive al 100%. Rubinetti esterni aperti su Sito Diretto e Google Reserve."
-    },
-    "S5 — Caldo Perfetto / Alta Pressione (Dispersione Esterna)": {
-        "ret_bb": 0.18, "ret_ro": 0.14, "ext_mult": 1.30, "terrazza_on": True, "lock_in": False,
-        "badge": "🔥 ALTA DISPERSIONE / FUGA OSPITI",
-        "action": "Ospiti RO/BB mangiano fuori: APRIRE TheFork/Google e lanciare Promo Lampo (Calice Benvenuto a costo vivo) per saturare i tavoli vuoti."
-    }
+    "S0 — LOCK-IN / FORZA MAGGIORE (Assedio 96h)": {"ret_bb": 1.00, "ret_ro": 1.00, "ext_mult": 0.00, "terrazza_on": False, "lock_in": True, "short": "S0 LOCK-IN"},
+    "S1 — Temporale / Pioggia Forte": {"ret_bb": 0.88, "ret_ro": 0.80, "ext_mult": 0.15, "terrazza_on": False, "lock_in": False, "short": "S1 PIOGGIA"},
+    "S2 — Grecale / Maestrale Forte": {"ret_bb": 0.68, "ret_ro": 0.58, "ext_mult": 0.40, "terrazza_on": False, "lock_in": False, "short": "S2 VENTO"},
+    "S3 — Variabile / Nuvoloso Mite": {"ret_bb": 0.48, "ret_ro": 0.38, "ext_mult": 0.75, "terrazza_on": True, "lock_in": False, "short": "S3 VARIABILE"},
+    "S4 — Sereno Standard (Ottimale)": {"ret_bb": 0.32, "ret_ro": 0.25, "ext_mult": 1.00, "terrazza_on": True, "lock_in": False, "short": "S4 SERENO"},
+    "S5 — Caldo Perfetto (Fuga Esterna)": {"ret_bb": 0.18, "ret_ro": 0.14, "ext_mult": 1.30, "terrazza_on": True, "lock_in": False, "short": "S5 CALDO MAX"},
 }
-
-def classify_day_scenario(am_rain, pm_rain, am_code, pm_code, max_wind):
-    if max_wind >= 48 or pm_rain >= 25.0:
-        return "S0 — LOCK-IN / FORZA MAGGIORE (Grounding & Assedio 96h)"
-    am_bad = (am_rain >= 3.0) or (am_code in [61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99])
-    pm_bad = (pm_rain >= 3.0) or (pm_code in [61, 63, 65, 71, 73, 75, 80, 81, 82, 95, 96, 99])
-    if pm_bad and am_bad:
-        return "S1 — Temporale / Pioggia Forte / Tormenta"
-    if max_wind >= 28 or pm_bad:
-        return "S2 — Grecale / Maestrale Forte / Freddo Improvviso"
-    am_uncertain = (am_rain >= 0.8) or (am_code in [2, 3, 45, 48, 51, 53, 55])
-    pm_uncertain = (pm_rain >= 0.8) or (pm_code in [2, 3, 45, 48, 51, 53, 55])
-    if am_uncertain or pm_uncertain:
-        return "S3 — Variabile / Nuvoloso Mite"
-    if max_wind <= 15 and am_rain == 0 and pm_rain == 0 and pm_code in [0, 1]:
-        return "S5 — Caldo Perfetto / Alta Pressione (Dispersione Esterna)"
-    return "S4 — Sereno Standard (Operatività Ottimale)"
-
-def fetch_live_weather(lat=42.92, lon=10.75):
-    try:
-        url = (
-            f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
-            "&hourly=precipitation,weathercode,windspeed_10m&forecast_days=1&timezone=Europe%2FRome"
-        )
-        req = urllib.request.Request(url, headers={"User-Agent": "BEMASK-LAZERS/2.0"})
-        with urllib.request.urlopen(req, timeout=4) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        h = data.get("hourly", {})
-        rain = h.get("precipitation", [0]*24)
-        codes = h.get("weathercode", [0]*24)
-        winds = h.get("windspeed_10m", [0]*24)
-        am_rain = sum(rain[8:14])
-        pm_rain = sum(rain[17:23])
-        am_code = max(codes[8:14]) if codes[8:14] else 0
-        pm_code = max(codes[17:23]) if codes[17:23] else 0
-        max_wind = max(winds) if winds else 10.0
-        scen = classify_day_scenario(am_rain, pm_rain, am_code, pm_code, max_wind)
-        return {"ok": True, "scenario": scen, "am_rain": round(am_rain, 1), "pm_rain": round(pm_rain, 1), "max_wind": round(max_wind, 1)}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
 
 def save_bridge_data(payload):
     try:
@@ -119,230 +97,206 @@ def save_bridge_data(payload):
     except Exception:
         return False
 
+def init_state():
+    defaults = {
+        "pin_code": "9999",
+        "active_view": "PIANTA PRINCIPALE",
+        "active_scenario": "S4 — Sereno Standard (Ottimale)",
+        "pax_fb": 20, "pax_hb": 35, "pax_bb": 45, "pax_ro": 15, "staff_in_house": 22,
+        "cap_interna": 80, "cap_terrazza": 50, "cap_max_cucina": 105, "domanda_esterni": 35,
+        "quota_hb": 28.0, "quota_fb": 48.0, "scontrino_ext": 52.0, "cf_brigata": 850.0,
+        "food_cost_pct": 29, "iva_fnb": 10, "fee_piva": 100, "comm_thefork": 2.50, "pct_thefork": 35
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
+
 def render_fnb_module():
-    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+    init_state()
+    st.markdown(KINETIC_CSS, unsafe_allow_html=True)
 
-    if "active_scenario" not in st.session_state:
-        st.session_state["active_scenario"] = "S4 — Sereno Standard (Operatività Ottimale)"
+    ora_str = datetime.now().strftime("%H:%M")
+    fascia = "SERVIZIO SERALE (18:00-23:00)" if datetime.now().hour >= 18 else "POMERIGGIO / PREP (14:00-18:00)"
 
-    col_w1, col_w2, col_w3 = st.columns([1.2, 1.2, 2.6])
-    with col_w1:
-        lat_in = st.number_input("Latitudine Struttura", value=42.920, format="%.3f")
-        lon_in = st.number_input("Longitudine Struttura", value=10.750, format="%.3f")
-    with col_w2:
-        st.write("")
-        if st.button("📡 SINCRONIZZA RADAR METEO LIVE", width="stretch"):
-            res_w = fetch_live_weather(lat_in, lon_in)
-            if res_w["ok"]:
-                st.session_state["active_scenario"] = res_w["scenario"]
-                st.toast(f"Meteo Live: Vento max {res_w['max_wind']} km/h | Pioggia PM {res_w['pm_rain']} mm")
-            else:
-                st.warning("Radar offline, mantenuto controllo manuale.")
-        soglia_nodi_vento = st.number_input("Soglia Grounding Vento (km/h)", value=45, step=5)
-    with col_w3:
-        scenario_list = list(WEATHER_PRESETS.keys())
-        idx_scen = scenario_list.index(st.session_state["active_scenario"]) if st.session_state["active_scenario"] in scenario_list else 4
-        selected_scen = st.selectbox("⚡ Scenario Operativo Attivo (S0 - S5)", scenario_list, index=idx_scen)
-        st.session_state["active_scenario"] = selected_scen
-        sc_data = WEATHER_PRESETS[selected_scen]
-        st.caption(f"**{sc_data['badge']}** ➔ {sc_data['action']}")
+    # --- TOP BAR IDENTICA A BOSCHETTO PRO ---
+    st.markdown(f"""
+    <div class="ska-topbar">
+        <div class="ska-brand">SOVEREIGN KINETIC ARCHITECTURE // <span>L.A.Z.E.R.S. PRO</span></div>
+        <div class="ska-clock">{ora_str} | {fascia}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
+    # --- BARRA COMANDI RAPIDI (PIN, CONFERMA, PIANTA PRINCIPALE, SELETTORE) ---
+    b1, b2, b3, b4 = st.columns([2.2, 1.3, 1.3, 1.4])
+    with b1:
+        st.text_input("PIN Manager", value=st.session_state["pin_code"], label_visibility="collapsed")
+    with b2:
+        if st.button("CONFERMA PIN ✔", use_container_width=True):
+            st.toast("Accesso Manager L.A.Z.E.R.S. Autorizzato")
+    with b3:
+        if st.button("PIANTA PRINCIPALE", use_container_width=True):
+            st.session_state["active_view"] = "PIANTA PRINCIPALE"
+            st.rerun()
+    with b4:
+        audio_on = st.toggle("AUDIO TASTI / LIVE", value=True)
+
+    # --- MOTORE DI CALCOLO IN TEMPO REALE ---
+    sc = WEATHER_PRESETS[st.session_state["active_scenario"]]
+    catturati_extra = round(st.session_state["pax_bb"] * sc["ret_bb"]) + round(st.session_state["pax_ro"] * sc["ret_ro"])
+    coperti_hotel = st.session_state["pax_fb"] + st.session_state["pax_hb"] + catturati_extra
+    sedute_attive = st.session_state["cap_interna"] + (st.session_state["cap_terrazza"] if sc["terrazza_on"] else 0)
+    tetto_servizio = min(sedute_attive, st.session_state["cap_max_cucina"])
+    slot_esterni = max(0, tetto_servizio - coperti_hotel)
+    domanda_ext_reale = 0 if sc["lock_in"] else round(st.session_state["domanda_esterni"] * sc["ext_mult"])
+    esterni_accettati = min(slot_esterni, domanda_ext_reale)
+    coperti_totali = coperti_hotel + esterni_accettati
+    bocche_96h = st.session_state["pax_fb"] + st.session_state["pax_hb"] + st.session_state["pax_bb"] + st.session_state["pax_ro"] + st.session_state["staff_in_house"]
+
+    lordo_tot = (st.session_state["pax_hb"] * st.session_state["quota_hb"]) + (st.session_state["pax_fb"] * st.session_state["quota_fb"]) + ((catturati_extra + esterni_accettati) * st.session_state["scontrino_ext"])
+    netto_iva = lordo_tot / (1.0 + st.session_state["iva_fnb"] / 100.0)
+    costo_mp = netto_iva * (st.session_state["food_cost_pct"] / 100.0)
+    costo_tf = (round(esterni_accettati * (st.session_state["pct_thefork"] / 100.0)) * st.session_state["comm_thefork"]) if slot_esterni > 12 else 0.0
+    costo_staff = st.session_state["staff_in_house"] * 4.50
+    mol_netto = netto_iva - costo_mp - st.session_state["cf_brigata"] - costo_tf - costo_staff
+    floor_hb = round((st.session_state["cf_brigata"] / max(coperti_totali, 15)) + (st.session_state["quota_hb"] * (st.session_state["food_cost_pct"] / 100.0)), 2)
+
+    # ==============================================================================
+    # LAYOUT CENTRALE: GRIGLIA 3x3 A SINISTRA + QUADRO SINOTTICO A DESTRA
+    # ==============================================================================
+    col_matrix, col_synoptic = st.columns([3.3, 1.15])
+
+    with col_matrix:
+        tiles = [
+            # RIGA 1
+            ("DIREZIONE F&B", f"€ {mol_netto:,.0f}", f"MOL Netto Oggi | P.IVA {st.session_state['fee_piva']}%", "tile-gold"),
+            ("ECONOMATO & SFRIDI", f"{st.session_state['food_cost_pct']}% TARGET", "Rese Carni, Sgocciolato & Calici", "tile-green"),
+            ("PRESENZE IN-HOUSE", f"{coperti_hotel} PAX", f"HB/FB: {st.session_state['pax_hb']+st.session_state['pax_fb']} | Catturati: +{catturati_extra}", "tile-cyan"),
+            # RIGA 2
+            ("RADAR METEO", sc["short"], "Retention & Apertura Zone", "tile-gold"),
+            ("SALA & CUCINA", f"{coperti_totali}/{tetto_servizio}", f"Sedute Attive: {sedute_attive} posti", "tile-green"),
+            ("SCUDO 96 ORE", f"{bocche_96h} BOCCHE", f"Ospiti + {st.session_state['staff_in_house']} Staff Residente", "tile-cyan"),
+            # RIGA 3
+            ("BAR & CANTINA", "POURING LIVE", f"Scontrino À la Carte: € {st.session_state['scontrino_ext']:.0f}", "tile-green"),
+            ("TERRAZZA & PORTALI", f"{slot_esterni} SLOT", "CHIUDERE THEFORK" if slot_esterni <= 12 else "THEFORK & GOOGLE ON", "tile-purple"),
+            ("PONTE SOVEREIGN", f"€ {floor_hb:.2f}", "Floor Industriale Pasto HB", "tile-purple"),
+        ]
+
+        for row_idx in range(0, 9, 3):
+            cols = st.columns(3)
+            for col_idx in range(3):
+                t_name, t_metric, t_sub, t_class = tiles[row_idx + col_idx]
+                with cols[col_idx]:
+                    st.markdown(f"""
+                    <div class="kinetic-tile {t_class}">
+                        <div class="tile-title">{t_name}</div>
+                        <div class="tile-metric">{t_metric}</div>
+                        <div class="tile-sub">{t_sub}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if st.button(f"APRI {t_name}", key=f"btn_{t_name}", use_container_width=True):
+                        st.session_state["active_view"] = t_name
+
+    with col_synoptic:
+        stato_portali = "0 COMMISSIONI (CHIUSO)" if slot_esterni <= 12 or sc["lock_in"] else f"{slot_esterni} POSTI APERTI"
+        st.markdown(f"""
+        <div class="synoptic-panel">
+            <div class="synoptic-header">QUADRO SINOTTICO</div>
+            <div class="syn-card">
+                <div class="syn-label">CARICO LINEA CUCINA</div>
+                <div class="syn-val">{coperti_totali}/{tetto_servizio}</div>
+                <div class="syn-note">Coperti totali certificati</div>
+            </div>
+            <div class="syn-card">
+                <div class="syn-label">PRESIDIO BRIGATA & STAFF</div>
+                <div class="syn-val">{st.session_state['staff_in_house']} UNITÀ</div>
+                <div class="syn-note">Costo fisso: € {st.session_state['cf_brigata']:,.0f}/gg</div>
+            </div>
+            <div class="syn-card">
+                <div class="syn-label">SEMAFORO PORTALI ESTERNI</div>
+                <div class="syn-val">{stato_portali}</div>
+                <div class="syn-note">Richiesta sul territorio: {domanda_ext_reale} pax</div>
+            </div>
+            <div class="syn-card">
+                <div class="syn-label">SCUDO AUTONOMIA 96H</div>
+                <div class="syn-val">{bocche_96h * 4} PASTI</div>
+                <div class="syn-note">Pronto per isolamento/grounding</div>
+            </div>
+            <div class="legend-box">
+                <span style="color:#F59E0B;">■</span> DIREZIONE & YIELD<br>
+                <span style="color:#10B981;">■</span> FOOD, CUCINA & CANTINA<br>
+                <span style="color:#06B6D4;">■</span> IN-HOUSE & SCUDO 96H<br>
+                <span style="color:#A855F7;">■</span> ESTERNE, PORTALI & PONTE
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ==============================================================================
+    # CONSOLLE DI DETTAGLIO DEL REPARTO SELEZIONATO (SOTTO LA PIANTA)
+    # ==============================================================================
     st.markdown("---")
+    vista = st.session_state["active_view"]
+    st.markdown(f"#### ⚡ CONSOLLE OPERATIVA ATTIVA: `{vista}` *(Clicca su una delle 9 piastrelle sopra per cambiare reparto)*")
 
-    p_col1, p_col2, p_col3, p_col4 = st.columns(4)
-    with p_col1:
-        st.markdown("##### 👥 1. Presenze In-House")
-        pax_fb = st.number_input("Ospiti in Pensione Completa (FB)", min_value=0, value=20, step=2)
-        pax_hb = st.number_input("Ospiti in Mezza Pensione (HB)", min_value=0, value=35, step=2)
-        pax_bb = st.number_input("Ospiti in B&B (Liberi a Cena)", min_value=0, value=45, step=2)
-        pax_ro = st.number_input("Ospiti in Solo Camera (RO)", min_value=0, value=15, step=2)
-        staff_in_house = st.number_input("Staff Alloggiato in Struttura (Bocche)", min_value=0, value=22, step=1)
+    if vista in ["PIANTA PRINCIPALE", "RADAR METEO", "PRESENZE IN-HOUSE", "SALA & CUCINA"]:
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.session_state["active_scenario"] = st.selectbox("Scenario Meteo (S0-S5)", list(WEATHER_PRESETS.keys()), index=list(WEATHER_PRESETS.keys()).index(st.session_state["active_scenario"]))
+            st.session_state["pax_fb"] = st.number_input("Ospiti FB", 0, 500, st.session_state["pax_fb"])
+            st.session_state["pax_hb"] = st.number_input("Ospiti HB", 0, 500, st.session_state["pax_hb"])
+        with c2:
+            st.session_state["pax_bb"] = st.number_input("Ospiti BB (Liberi)", 0, 500, st.session_state["pax_bb"])
+            st.session_state["pax_ro"] = st.number_input("Ospiti RO (Liberi)", 0, 500, st.session_state["pax_ro"])
+            st.session_state["staff_in_house"] = st.number_input("Staff Alloggiato (Bocche)", 0, 200, st.session_state["staff_in_house"])
+        with c3:
+            st.session_state["cap_interna"] = st.number_input("Sedute Sala Interna", 10, 500, st.session_state["cap_interna"])
+            st.session_state["cap_terrazza"] = st.number_input("Sedute Terrazza/Spiaggia", 0, 500, st.session_state["cap_terrazza"])
+            st.session_state["cap_max_cucina"] = st.number_input("Collo Bottiglia Cucina", 10, 500, st.session_state["cap_max_cucina"])
 
-    with p_col2:
-        st.markdown("##### 🏛️ 2. DNA Zone & Capienze")
-        cap_interna = st.number_input("Sedute Sala Interna Climatizzata", min_value=10, value=80, step=5)
-        cap_terrazza = st.number_input("Sedute Terrazza / Dehors / Spiaggia", min_value=0, value=50, step=5)
-        cap_max_cucina = st.number_input("Collo di Bottiglia Cucina (Max Coperti)", min_value=10, value=105, step=5)
-        domanda_esterni_base = st.number_input("Richiesta Media Clienti Esterni", min_value=0, value=35, step=5)
-        soglia_carta_garanzia = st.number_input("Soglia Pax Carta a Garanzia (Anti No-Show)", min_value=2, value=4, step=1)
-
-    with p_col3:
-        st.markdown("##### 💶 3. Scorpori & Costi Fissi")
-        quota_pasto_hb = st.number_input("Scorporo Netto Pasto HB (€)", min_value=10.0, value=28.0, step=1.0)
-        quota_pasto_fb = st.number_input("Scorporo Netto Pasti FB (€)", min_value=20.0, value=48.0, step=1.0)
-        scontrino_alacarte = st.number_input("Scontrino Medio À la Carte / Esterni (€)", min_value=15.0, value=52.0, step=2.0)
-        cf_brigata = st.number_input("Costo Fisso Giornaliero Brigata Sala+Cucina (€)", min_value=100.0, value=850.0, step=50.0)
-        food_cost_pct = st.slider("Food & Beverage Cost Medio Target (%)", 15, 55, 29)
-
-    with p_col4:
-        st.markdown("##### 🏛️ 4. Split Multi-P.IVA & Portali")
-        iva_media_fnb = st.selectbox("Aliquota IVA Prevalente F&B (%)", [10, 22], index=0)
-        fee_gestore_fnb = st.slider("Quota Spettante a P.IVA Ristorazione (%)", 10, 100, 100)
-        comm_thefork = st.number_input("Costo Commissione TheFork (€/coperto)", min_value=0.0, value=2.50, step=0.10)
-        quota_thefork_pct = st.slider("% Esterni provenienti da TheFork", 0, 100, 35)
-
-    catturati_bb = round(pax_bb * sc_data["ret_bb"])
-    catturati_ro = round(pax_ro * sc_data["ret_ro"])
-    catturati_extra_hotel = catturati_bb + catturati_ro
-    coperti_garantiti_hotel = pax_fb + pax_hb
-    coperti_totali_hotel = coperti_garantiti_hotel + catturati_extra_hotel
-
-    sedute_disponibili_oggi = cap_interna + (cap_terrazza if sc_data["terrazza_on"] else 0)
-    tetto_reale_servizio = min(sedute_disponibili_oggi, cap_max_cucina)
-    slot_liberi_per_esterni = max(0, tetto_reale_servizio - coperti_totali_hotel)
-
-    domanda_ext_meteo = 0 if sc_data["lock_in"] else round(domanda_esterni_base * sc_data["ext_mult"])
-    esterni_accettati = min(slot_liberi_per_esterni, domanda_ext_meteo)
-    coperti_totali = coperti_totali_hotel + esterni_accettati
-    bocche_totali_assedio = pax_fb + pax_hb + pax_bb + pax_ro + staff_in_house
-
-    ricavo_lordo_hb_fb = (pax_hb * quota_pasto_hb) + (pax_fb * quota_pasto_fb)
-    ricavo_lordo_extra_catturati = catturati_extra_hotel * scontrino_alacarte
-    ricavo_lordo_esterni = esterni_accettati * scontrino_alacarte
-    fatturato_lordo_tot = ricavo_lordo_hb_fb + ricavo_lordo_extra_catturati + ricavo_lordo_esterni
-
-    fatturato_netto_iva = fatturato_lordo_tot / (1.0 + (iva_media_fnb / 100.0))
-    coperti_da_thefork = round(esterni_accettati * (quota_thefork_pct / 100.0)) if slot_liberi_per_esterni > 12 else 0
-    costo_comm_portali = coperti_da_thefork * comm_thefork
-    costo_materie_prime = fatturato_netto_iva * (food_cost_pct / 100.0)
-    costo_pasti_staff = staff_in_house * 4.50
-
-    margine_operativo_netto = fatturato_netto_iva - costo_materie_prime - cf_brigata - costo_comm_portali - costo_pasti_staff
-    quota_societa_fnb = margine_operativo_netto * (fee_gestore_fnb / 100.0)
-    quota_casa_madre = margine_operativo_netto - quota_societa_fnb
-
-    k1, k2, k3, k4, k5, k6 = st.columns(6)
-    k1.metric("Sedute Attive Oggi", f"{sedute_disponibili_oggi} posti", "Terrazza ON" if sc_data["terrazza_on"] else "Solo Interno")
-    k2.metric("Ospiti BB/RO Catturati", f"+{catturati_extra_hotel} pax", f"su {pax_bb + pax_ro} liberi")
-    k3.metric("Coperti Totali Serviti", f"{coperti_totali} / {tetto_reale_servizio}", f"Esterni: {esterni_accettati}")
-    k4.metric("Ricavo Netto (ex IVA)", f"€ {fatturato_netto_iva:,.0f}", f"Lordo: € {fatturato_lordo_tot:,.0f}")
-    k5.metric("MOL F&B Pulito Oggi", f"€ {margine_operativo_netto:,.0f}", f"Staff: -€ {costo_pasti_staff:,.0f}")
-    k6.metric("Bocche Totali (96h)", f"{bocche_totali_assedio} bocche", f"Include {staff_in_house} Staff")
-
-    if sc_data["lock_in"]:
-        st.markdown(f'<div class="box-red"><b>🔴 PROTOCOLLO ISOLAMENTO / FORZA MAGGIORE ATTIVO:</b> Chiudere istantaneamente <b>TheFork, OpenTable e Google Reserve</b> agli esterni. Priorità assoluta alle <b>{bocche_totali_assedio} bocche presenti nell\'edificio</b> ({pax_fb+pax_hb+pax_bb+pax_ro} Ospiti + {staff_in_house} Staff Residente).</div>', unsafe_allow_html=True)
-    elif slot_liberi_per_esterni <= 12:
-        st.markdown(f'<div class="box-amber"><b>🟠 SATURAZIONE INTERNA ELEVATA ({coperti_totali_hotel}/{tetto_reale_servizio} coperti già in casa):</b> <b>CHIUDERE SUBITO THEFORK</b> (risparmio € {comm_thefork:.2f}/coperto). Lasciare aperti solo <b>{slot_liberi_per_esterni} posti</b> su <b>Google Reserve / Canale Diretto</b> con carta a garanzia sopra i {soglia_carta_garanzia} ospiti.</div>', unsafe_allow_html=True)
-    else:
-        st.markdown(f'<div class="box-green"><b>🟢 CAPACITÀ ESTERNA DISPONIBILE ({slot_liberi_per_esterni} sedute libere):</b> Mantenere aperti <b>Google Reserve, Sito Diretto e TheFork</b>. Garanzia carta anti no-show per tavoli da {soglia_carta_garanzia}+ pax.</div>', unsafe_allow_html=True)
-
-    t1, t2, t3, t4, t5 = st.tabs([
-        "🔬 1. ECONOMATO & SFRIDI VIVI",
-        "🛡️ 2. SCUDO 96 ORE & FALLBACK VIP",
-        "🎯 3. PROMO ENGINE & ROAS NETTO",
-        "🏛️ 4. SPLIT MULTI-P.IVA & XML",
-        "🌉 5. PONTE SOVEREIGN ZERO"
-    ])
-
-    with t1:
-        st.subheader("Calcolatore Chirurgico Sfridi, Sgocciolato, Selvaggina, Pouring & Usura Calici")
+    elif vista in ["ECONOMATO & SFRIDI", "BAR & CANTINA"]:
         ec1, ec2, ec3 = st.columns(3)
         with ec1:
-            ref_nome = st.text_input("Referenza (Piatto / Calice / Bottiglia)", value="Tagliata di Cervo / Calice Franciacorta")
-            prezzo_menu_lordo = st.number_input("Prezzo Vendita Menu IVA Incl. (€)", value=26.0, step=1.0)
-            iva_ref = st.selectbox("IVA Referenza (%)", [10, 22], index=0)
+            ref = st.text_input("Referenza Piatto / Calice", value="Tagliata di Cervo / Franciacorta")
+            p_lordo = st.number_input("Prezzo Vendita Lordo (€)", value=26.0, step=1.0)
         with ec2:
-            costo_acq_kg_lt = st.number_input("Costo Acquisto Fattura Netto (€/Kg o €/Bottiglia)", value=24.0, step=0.5)
-            grammatura_porzione = st.number_input("Dose Servita nel Piatto/Calice (Kg o frazione)", value=0.200, step=0.020, format="%.3f")
-            resa_effettiva_pct = st.slider("Resa Reale Post-Sfrido / Sgocciolato / Ossa (%)", 35, 100, 72)
+            c_kg = st.number_input("Costo Fattura Netto (€/Kg o Bott.)", value=24.0, step=0.5)
+            dose = st.number_input("Dose Servita (Kg o frazione)", value=0.200, step=0.02, format="%.3f")
         with ec3:
-            quota_rottura_vetri = st.number_input("Quota Usura/Rottura Cristalleria + Tovagliato (€)", value=0.45, step=0.05)
-            costo_guarnizione = st.number_input("Costo Contorno / Guarnizione / Pane & Coperto (€)", value=1.10, step=0.10)
+            resa = st.slider("Resa Reale Post-Sfrido (%)", 35, 100, 72)
+            vetri = st.number_input("Quota Rottura Calici + Guarnizione (€)", value=1.55, step=0.10)
+        p_net = p_lordo / 1.10
+        c_vivo = ((c_kg * dose) / (resa / 100.0)) + vetri
+        st.success(f"**{ref}** ➔ Ricavo Netto: **€ {p_net:.2f}** | Costo Vivo Reale (con sfrido): **€ {c_vivo:.2f}** | Margine Netto: **€ {p_net - c_vivo:.2f}** ({(c_vivo/p_net*100):.1f}% Food Cost)")
 
-        prezzo_ref_netto = prezzo_menu_lordo / (1.0 + iva_ref / 100.0)
-        costo_mp_teorico = costo_acq_kg_lt * grammatura_porzione
-        costo_mp_reale_sfrido = costo_mp_teorico / (resa_effettiva_pct / 100.0)
-        costo_vivo_totale_piatto = costo_mp_reale_sfrido + quota_rottura_vetri + costo_guarnizione
-        margine_netto_piatto = prezzo_ref_netto - costo_vivo_totale_piatto
-        incidenza_reale_pct = (costo_vivo_totale_piatto / prezzo_ref_netto * 100.0) if prezzo_ref_netto > 0 else 0.0
+    elif vista == "SCUDO 96 ORE":
+        df_scudo = pd.DataFrame([
+            {"Dispensa Critica": "Farine, Lievito & Panificazione", "Stock (Porzioni)": 520, "Target 96h": bocche_96h * 4},
+            {"Dispensa Critica": "Uova, Latte UHT & Burro Colazione", "Stock (Porzioni)": 380, "Target 96h": bocche_96h * 4},
+            {"Dispensa Critica": "Proteine Nobili / Selvaggina (-18°C)", "Stock (Porzioni)": 490, "Target 96h": bocche_96h * 4},
+            {"Dispensa Critica": "Pasta, Riso Carnaroli & Pelati", "Stock (Porzioni)": 640, "Target 96h": bocche_96h * 4},
+        ])
+        df_scudo["Giorni Autonomia"] = (df_scudo["Stock (Porzioni)"] / max(1, bocche_96h)).round(1)
+        st.dataframe(df_scudo, use_container_width=True, hide_index=True)
 
-        m_a, m_b, m_c, m_d = st.columns(4)
-        m_a.metric("Ricavo Netto Referenza", f"€ {prezzo_ref_netto:.2f}", f"Teorico senza scarto: € {costo_mp_teorico:.2f}")
-        m_b.metric("Costo Vivo Reale (con Sfrido+Vetri)", f"€ {costo_vivo_totale_piatto:.2f}", f"+€ {costo_mp_reale_sfrido - costo_mp_teorico:.2f} di sfrido occulto")
-        m_c.metric("Margine Netto Unitario", f"€ {margine_netto_piatto:.2f}")
-        m_d.metric("Food Cost Reale Referenza", f"{incidenza_reale_pct:.1f}%", "In Target" if incidenza_reale_pct <= 30 else "Rivedere Prezzo/Porzione")
-
-    with t2:
-        st.subheader(f"Autonomia Dispensa 96 Ore ({bocche_totali_assedio} Bocche: Ospiti + Staff) & Piano Continuità VIP")
-        col_s1, col_s2 = st.columns([1.3, 1])
-        with col_s1:
-            fabbisogno_96h = bocche_totali_assedio * 4
-            df_assedio = pd.DataFrame([
-                {"Dispensa Critica": "Farina, Lievito Secco & Basi Panificazione", "Porzioni in Casa": 520, "Target 96h": fabbisogno_96h},
-                {"Dispensa Critica": "Latte UHT, Uova, Burro & Colazione", "Porzioni in Casa": 380, "Target 96h": fabbisogno_96h},
-                {"Dispensa Critica": "Proteine Nobili / Selvaggina (-18°C)", "Porzioni in Casa": 490, "Target 96h": fabbisogno_96h},
-                {"Dispensa Critica": "Pasta, Riso Carnaroli & Pelati Sgocciolati", "Porzioni in Casa": 640, "Target 96h": fabbisogno_96h},
-                {"Dispensa Critica": "Acqua Minerale, Vino & Gas Cucina", "Porzioni in Casa": 700, "Target 96h": fabbisogno_96h},
-            ])
-            df_assedio["Autonomia (Giorni)"] = (df_assedio["Porzioni in Casa"] / max(1, bocche_totali_assedio)).round(1)
-            df_assedio["Stato Scudo"] = df_assedio["Autonomia (Giorni)"].apply(
-                lambda d: "🟢 AUTONOMO (>4gg)" if d >= 4.0 else "🔴 REINTEGRO IMMEDIATO (<4gg)"
-            )
-            st.dataframe(df_assedio, width="stretch", hide_index=True)
-
-        with col_s2:
-            df_staff_vip = pd.DataFrame([
-                {"Servizio VIP": "Lezione Yoga / Pilates", "Operatore": "Esterno (Pendolare da Valle)", "Fallback in Caso Blocco": "Diretta Live 4K in Suite + Tisana Detox & Operatrice Spa In-House"},
-                {"Servizio VIP": "Degustazione Sommelier", "Operatore": "Residente (Staff House)", "Fallback in Caso Blocco": "Garantito al 100% in Cantina Storica"},
-                {"Servizio VIP": "Escursione Yacht / Elicottero", "Operatore": "Soggetto a Grounding Meteo", "Fallback in Caso Blocco": "Conversione immediata in Voucher Private Spa + Champagne Cuvée"},
-            ])
-            st.dataframe(df_staff_vip, width="stretch", hide_index=True)
-
-    with t3:
-        st.subheader("Calcolatore Spinta Pubblicitaria (Google Ads / Meta / QR Interno) su Margine Vivo")
-        pr1, pr2, pr3 = st.columns(3)
-        sedute_target_promo = pr1.number_input("Sedute Vuote da Colmare con Promo", min_value=1, value=max(8, slot_liberi_per_esterni), step=2)
-        scontrino_promo = pr2.number_input("Scontrino Lordo Previsto Promo (€)", min_value=20.0, value=scontrino_alacarte, step=5.0)
-        costo_vivo_omaggio = pr3.number_input("Costo Vivo Benefit Omaggio (es. Calice €3,10)", min_value=0.0, value=3.10, step=0.50)
-
-        incasso_netto_promo = (scontrino_promo / (1.0 + iva_media_fnb / 100.0)) * sedute_target_promo
-        costo_mp_promo = incasso_netto_promo * (food_cost_pct / 100.0)
-        costo_tot_omaggi = costo_vivo_omaggio * sedute_target_promo
-        utile_netto_promo = incasso_netto_promo - costo_mp_promo - costo_tot_omaggi
-        budget_ads_consigliato = max(0.0, utile_netto_promo * 0.15)
-
-        pm1, pm2, pm3 = st.columns(3)
-        pm1.metric("Ricavo Netto Aggiuntivo", f"€ {incasso_netto_promo:,.0f}")
-        pm2.metric("Utile Vivo Pulito (dopo MP e Calice Omaggio)", f"€ {utile_netto_promo:,.0f}")
-        pm3.metric("Budget Max Ads Giornaliero (15% del Netto)", f"€ {budget_ads_consigliato:,.0f}", "Zero erosione margine")
-
-    with t4:
-        st.subheader("Rendicontazione Separata Casa Madre vs P.IVA Ristorazione / Lido")
-        sp1, sp2, sp3 = st.columns(3)
-        sp1.metric("MOL Totale Generato Oggi", f"€ {margine_operativo_netto:,.2f}")
-        sp2.metric(f"Quota P.IVA Ristorazione ({fee_gestore_fnb}%)", f"€ {quota_societa_fnb:,.2f}")
-        sp3.metric(f"Royalty / Quota Casa Madre ({100 - fee_gestore_fnb}%)", f"€ {quota_casa_madre:,.2f}")
-
-    with t5:
-        st.markdown("#### 🔗 4. PONTE VERSO SOVEREIGN ZERO (`bridge_data.json`)")
-        floor_min_hb = round((cf_brigata / max(coperti_totali, 15)) + (quota_pasto_hb * (food_cost_pct / 100.0)), 2)
-        st.write(f"Scenario attivo inviato al banco: **{st.session_state['active_scenario']}**")
-        st.write(f"Costo vivo industriale stimato per pasto (Floor HB): **{floor_min_hb:.2f} €**")
-
-        if st.button("💾 CONSOLIDA SCENARIO E FLOOR PER SOVEREIGN ZERO", width="stretch"):
-            ok = save_bridge_data({
-                "updated_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "system": "BEMASK // L.A.Z.E.R.S.",
-                "active_weather_scenario": st.session_state["active_scenario"],
-                "floor_hb": quota_pasto_hb,
-                "floor_fb": quota_pasto_fb,
-                "floor_industriale_pasto": floor_min_hb,
-                "food_cost_pct": food_cost_pct,
-                "cf_brigata_default": cf_brigata,
-                "pax_hb": pax_hb,
-                "pax_fb": pax_fb,
-                "pax_bb": pax_bb,
-                "pax_ro": pax_ro,
-                "staff_in_house": staff_in_house,
-                "bocche_assedio_96h": bocche_totali_assedio,
-                "slot_esterni_aperti": slot_liberi_per_esterni,
-                "mol_fnb_giornaliero": round(margine_operativo_netto, 2)
-            })
-            if ok:
-                st.success("✅ Scenario, Econometria e Vincoli L.A.Z.E.R.S. salvati in 'bridge_data.json'!")
-            else:
-                st.error("Impossibile salvare il file ponte.")
+    elif vista in ["DIREZIONE F&B", "TERRAZZA & PORTALI", "PONTE SOVEREIGN"]:
+        d1, d2, d3 = st.columns(3)
+        with d1:
+            st.session_state["quota_hb"] = st.number_input("Scorporo HB (€)", 10.0, 200.0, st.session_state["quota_hb"])
+            st.session_state["cf_brigata"] = st.number_input("Costo Fisso Brigata (€/gg)", 100.0, 5000.0, st.session_state["cf_brigata"], step=50.0)
+        with d2:
+            st.session_state["food_cost_pct"] = st.slider("Food Cost Medio (%)", 15, 55, st.session_state["food_cost_pct"])
+            st.session_state["fee_piva"] = st.slider("Quota P.IVA Ristorazione (%)", 10, 100, st.session_state["fee_piva"])
+        with d3:
+            st.write(f"Floor Industriale Pasto HB: **€ {floor_hb:.2f}**")
+            if st.button("💾 CONSOLIDA BRIDGE PER SOVEREIGN ZERO", use_container_width=True):
+                save_bridge_data({
+                    "updated_at": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "active_weather_scenario": st.session_state["active_scenario"],
+                    "floor_hb": st.session_state["quota_hb"],
+                    "floor_industriale_pasto": floor_hb,
+                    "mol_fnb_giornaliero": round(mol_netto, 2)
+                })
+                st.success("✅ Ponte sincronizzato con Sovereign Zero!")
 
 if __name__ == "__main__":
-    st.set_page_config(page_title="BEMASK // L.A.Z.E.R.S.", layout="wide")
+    st.set_page_config(page_title="SOVEREIGN KINETIC // L.A.Z.E.R.S. PRO", layout="wide")
     render_fnb_module()
